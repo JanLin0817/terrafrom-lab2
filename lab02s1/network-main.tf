@@ -80,3 +80,50 @@ resource "azurerm_subnet_network_security_group_association" "network-nsg1-assoc
   subnet_id                 = azurerm_subnet.network-subnet1.id
   network_security_group_id = azurerm_network_security_group.network-nsg1.id
 }
+
+# Create the second Subnet
+resource "azurerm_subnet" "network-subnet2" {
+  name                 = "network-subnet2"
+  resource_group_name  = azurerm_resource_group.network-rg.name
+  virtual_network_name = azurerm_virtual_network.network-vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+# Create a Network Security Group (NSG) for the second subnet
+resource "azurerm_network_security_group" "network-nsg2" {
+  name                = "network-nsg2"
+  location            = azurerm_resource_group.network-rg.location
+  resource_group_name = azurerm_resource_group.network-rg.name
+
+  # Security Rule: Allow RDP (Port 3389) for Windows remote access
+  security_rule {
+    name                       = "rule1"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Security Rule: Allow WinRM (Port 5985) for Windows management
+  security_rule {
+    name                       = "rule2"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5985"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+# Associate the NSG with Subnet 2
+resource "azurerm_subnet_network_security_group_association" "network-nsg2-assoc" {
+  subnet_id                 = azurerm_subnet.network-subnet2.id
+  network_security_group_id = azurerm_network_security_group.network-nsg2.id
+}
